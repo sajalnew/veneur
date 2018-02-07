@@ -2,6 +2,8 @@ package signalfx
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"sort"
 	"testing"
 	"time"
@@ -11,6 +13,7 @@ import (
 	"github.com/signalfx/golib/sfxclient"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stripe/veneur/samplers"
 )
 
@@ -316,4 +319,34 @@ func TestSignalFxFlushMultiKey(t *testing.T) {
 		assert.Equal(t, "glooblestoots", dims["host"], "Metric is missing host tag")
 		assert.Equal(t, "available", dims["test_by"], "Metric should have the right test_by tag")
 	}
+}
+
+func TestSignalFxMetricsTimeout(t *testing.T) {
+	never := make(chan struct{})
+	defer close(never)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-never
+	}))
+	defer srv.Close()
+
+	sink, err := NewSignalFxSink("secret", srv.URL, "host", "glooblestoots", map[string]string{"yay": "pie"}, logrus.New(), nil)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Nanosecond)
+	defer cancel()
+
+	interMetrics := []samplers.InterMetric{samplers.InterMetric{
+		Name:      "a.b.c",
+		Timestamp: 1476119058,
+		Value:     float64(100),
+		Tags: []string{
+			"foo:bar",
+			"baz:quz",
+		},
+		Type: samplers.GaugeMetric,
+	}}
+	// Failure to account for the timeout will cause a test
+	// timeout here:
+	sink.Flush(ctx, interMetrics)
 }
