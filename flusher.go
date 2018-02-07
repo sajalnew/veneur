@@ -37,6 +37,26 @@ func (s *Server) flushMetricSinks(ctx context.Context, finalMetrics []samplers.I
 	wg.Wait()
 }
 
+func flushEventSink(ctx context.Context, wg *sync.WaitGroup, sink sinks.MetricSink, events []samplers.UDPEvent, checks []samplers.UDPServiceCheck) {
+	sink.FlushEventsChecks(ctx, events, checks)
+	wg.Done()
+}
+
+func (s *Server) flushEventChecks(ctx context.Context, events []samplers.UDPEvent, checks []samplers.UDPServiceCheck) {
+	if s.MetricFlushTimeout > 0 {
+		var cancel func()
+		ctx, cancel = context.WithTimeout(ctx, s.MetricFlushTimeout)
+		defer cancel()
+	}
+
+	wg := sync.WaitGroup{}
+	for _, sink := range s.metricSinks {
+		wg.Add(1)
+		go flushEventSink(ctx, &wg, sink, events, checks)
+	}
+	wg.Wait()
+}
+
 // Flush collects sampler's metrics and passes them to sinks.
 func (s *Server) Flush(ctx context.Context) {
 	span := tracer.StartSpan("flush").(*trace.Span)
@@ -57,10 +77,7 @@ func (s *Server) Flush(ctx context.Context) {
 	span.Add(ssf.Count("worker.events_flushed_total", float32(len(events)), nil),
 		ssf.Count("worker.checks_flushed_total", float32(len(checks)), nil))
 
-	// TODO Concurrency
-	for _, sink := range s.metricSinks {
-		sink.FlushEventsChecks(span.Attach(ctx), events, checks)
-	}
+	s.flushEventChecks(ctx, events, checks)
 
 	go s.flushTraces(span.Attach(ctx))
 
