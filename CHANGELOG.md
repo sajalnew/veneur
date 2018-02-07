@@ -13,6 +13,7 @@
   * `veneur.worker.span_chan.total_elements` over `veneur.worker.span_chan.total_capacity` gives the utilization of the sink ingestion channel.
 * Introduce a generic gRPC streaming backend for trace spans. Thanks, [sdboyer](https://github.com/sdboyer)!
 * New config keys `signalfx_vary_key_by` and `signalfx_per_tag_api_keys` which which allow sending signalfx data points with an API key specific to these data points' dimensions. Thanks, [antifuchs](https://github.com/antifuchs)!
+* `veneur` has new configuration options `forward_timeout`, `metrics_flush_timeout`, and `span_flush_timeout`. They control how long veneur will allow for each flush operation to take and report an error if the flush takes longer than expected. Thanks, [antifuchs](https://github.com/antifuchs)!
 
 # 3.0.0, 2018-02-27
 
