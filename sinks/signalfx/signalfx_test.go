@@ -329,7 +329,8 @@ func TestSignalFxMetricsTimeout(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	sink, err := NewSignalFxSink("secret", srv.URL, "host", "glooblestoots", map[string]string{"yay": "pie"}, logrus.New(), nil)
+	cl := NewClient(srv.URL, "")
+	sink, err := NewSignalFxSink("host", "glooblestoots", map[string]string{}, logrus.New(), cl, "", nil)
 	require.NoError(t, err)
 
 	ctx := context.Background()
