@@ -2,6 +2,7 @@
 package ssfmetrics
 
 import (
+	"context"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -130,7 +131,7 @@ func (m *metricExtractionSink) Ingest(span *ssf.SSFSpan) error {
 	return nil
 }
 
-func (m *metricExtractionSink) Flush() {
+func (m *metricExtractionSink) Flush(context.Context) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	tags := map[string]string{"sink": m.Name()}

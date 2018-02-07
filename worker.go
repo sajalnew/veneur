@@ -1,6 +1,7 @@
 package veneur
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -413,7 +414,7 @@ func (tw *SpanWorker) Work() {
 }
 
 // Flush invokes flush on each sink.
-func (tw *SpanWorker) Flush() {
+func (tw *SpanWorker) Flush(ctx context.Context) {
 	samples := &ssf.Samples{}
 	defer metrics.Report(tw.traceClient, samples)
 
@@ -421,7 +422,7 @@ func (tw *SpanWorker) Flush() {
 	for i, s := range tw.sinks {
 		tags := tw.sinkTags[i]
 		sinkFlushStart := time.Now()
-		s.Flush()
+		s.Flush(ctx)
 		samples.Add(ssf.Timing("worker.span.flush_duration_ns", time.Since(sinkFlushStart), time.Nanosecond, tags))
 		cumulative := time.Duration(atomic.SwapInt64(&tw.cumulativeTimes[i], 0)) * time.Nanosecond
 		samples.Add(ssf.Timing(sinks.MetricKeySpanIngestDuration, cumulative, time.Nanosecond, tags))
