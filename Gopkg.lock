@@ -636,10 +636,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-<<<<<<< HEAD
-  inputs-digest = "5b1b65dcd3fc400a7a6b245cea1931d676ac05c9d5657e797d248f5ae73e926f"
-=======
   inputs-digest = "fc143ff12e091e0817228eb9208f536805b3401d304c93a6ad635cafff8f9f7f"
->>>>>>> Update testify dep
   solver-name = "gps-cdcl"
   solver-version = 1
