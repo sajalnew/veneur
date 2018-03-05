@@ -2,6 +2,7 @@
 
 ## Improvements
 * Receiving SSF in UDP packets now happens on `num_readers` goroutines. Thanks, [antifuchs](https://github.com/antifuchs)
+* Revamped how sinks handle DogStatsD's events and service checks. Thanks, [gphat](https://github.com/gphat)
 
 ## Added
 
